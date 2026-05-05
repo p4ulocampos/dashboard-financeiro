@@ -65,20 +65,26 @@ elif pagina == "📥 Realizar Lançamento":
     if senha == "analista2026":
         with st.form("form_registro", clear_on_submit=True):
             data = st.date_input("Data")
-            cat = st.text_input("Categoria", type="text")
+            cat = st.text_input("Categoria")
             val = st.number_input("Valor do Gasto", min_value=0.0)
-            desc = st.text_input("Descrição", type="text")
-            nome = st.text_input("Nome do Titular", type="text")
+            desc = st.text_input("Descrição")
+            nome = st.text_input("Nome do Titular")
             dia_vencimento = st.date_input("Dia de Vencimento")
-            banco_cartao = st.text_input("Banco/Cartão", type="text")
-
-            
+            banco_cartao = st.text_input("Banco/Cartão")
             sub = st.form_submit_button("Registrar no Banco")
             
             if sub:
                 if val > 0:
                     try:
-                        novo_item = {'data': data, 'valor' : val, 'descricao': desc, 'categoria': cat, 'nome_titular': nome, 'dia_vencimento': dia_vencimento, 'banco_cartao': banco_cartao}
+                        novo_item ={
+                        'data': str(data), 
+                        'valor': val, 
+                        'descricao': desc,      
+                        'categoria': cat, 
+                        'nome_titular': nome, 
+                        'dia_vencimento': str(dia_vencimento), 
+                        'banco_cartao': banco_cartao
+                        }
                         supabase.table("cartao_credito").insert(novo_item).execute()
                         st.success("Lançamento realizado! Verifique o Dashboard.")
                     except Exception as e:
