@@ -62,7 +62,7 @@ elif pagina == "📥 Realizar Lançamento":
     # Colocando a senha que criamos no desafio anterior
     senha = st.sidebar.text_input("Senha de Acesso", type="password")
     
-    if senha == "analista2026":
+    if senha == "financeiro2026":
         with st.form("form_registro", clear_on_submit=True):
             data = st.date_input("Data")
             cat = st.text_input("Categoria")
@@ -70,7 +70,7 @@ elif pagina == "📥 Realizar Lançamento":
             desc = st.text_input("Descrição")
             nome = st.text_input("Nome do Titular")
             dia_vencimento = st.date_input("Dia de Vencimento")
-            banco_cartao = st.text_input("Banco/Cartão")
+            banco_cartao = st.selectbox("Banco/Cartão", ['Nubank', 'Itaú', 'Mercado Pago'])
             sub = st.form_submit_button("Registrar no Banco")
             
             if sub:
@@ -83,7 +83,7 @@ elif pagina == "📥 Realizar Lançamento":
                         'categoria': cat, 
                         'nome_titular': nome, 
                         'dia_vencimento': str(dia_vencimento), 
-                        'banco_cartao': banco_cartao
+                        'banco_do_cartao': banco_cartao
                         }
                         supabase.table("cartao_credito").insert(novo_item).execute()
                         st.success("Lançamento realizado! Verifique o Dashboard.")
