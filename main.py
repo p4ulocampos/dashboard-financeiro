@@ -64,21 +64,26 @@ elif pagina == "📥 Realizar Lançamento":
     
     if senha == "analista2026":
         with st.form("form_registro", clear_on_submit=True):
-            cat = st.selectbox("Categoria", ["Marketing", "TI", "RH", "Operacional"])
+            data = st.date_input("Data")
+            cat = st.text_input("Categoria", type="text")
             val = st.number_input("Valor do Gasto", min_value=0.0)
-            desc = st.text_area("Descrição (Mínimo 10 caracteres)")
+            desc = st.text_input("Descrição", type="text")
+            nome = st.text_input("Nome do Titular", type="text")
+            dia_vencimento = st.date_input("Dia de Vencimento")
+            banco_cartao = st.text_input("Banco/Cartão", type="text")
+
             
             sub = st.form_submit_button("Registrar no Banco")
             
             if sub:
-                if len(desc) >= 10 and val > 0:
+                if val > 0:
                     try:
-                        novo_item = {"categoria": cat, "valor": val, "descricao": desc}
-                        supabase.table("teste").insert(novo_item).execute()
+                        novo_item = {'data': data, 'valor' : val, 'descricao': desc, 'categoria': cat, 'nome_titular': nome, 'dia_vencimento': dia_vencimento, 'banco_cartao': banco_cartao}
+                        supabase.table("cartao_credito").insert(novo_item).execute()
                         st.success("Lançamento realizado! Verifique o Dashboard.")
                     except Exception as e:
                         st.error(f"Erro: {e}")
                 else:
-                    st.error("Verifique se a descrição tem 10 caracteres e o valor é maior que 0.")
+                    st.error("Verifique se o campo 'Valor do Gasto' o valor é maior que 0.")
     else:
-        st.info("Por favor, insira a senha correta na barra lateral para liberar o formulário.")
+        st.error("Por favor, insira a senha correta na barra lateral para liberar o formulário.")
