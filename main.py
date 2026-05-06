@@ -22,7 +22,7 @@ ano_atual = datetime.now().year
 mes_selecionado = st.sidebar.slider('Selecione o Mês', min_value=1, max_value=12, value=mes_atual)
 ano_selecionado = st.sidebar.slider('Selecione o Mês', min_value=2024, max_value=2027, value=ano_atual)
 categoria_selecionada = st.sidebar.multiselect('Selecione a Categoria', options=df['categoria'].unique(), default=df['categoria'].unique())
-origem_selecionada = st.sidebar.multiselect('Selecione a Origem', options=df['Origem'].unique(), default=df['Origem'].unique())
+origem_selecionada = st.sidebar.multiselect('Selecione a Origem', options=df['origem'].unique(), default=df['Origem'].unique())
 tipo_selecionado = st.sidebar.multiselect('Selecione o Tipo', options=df['tipo'].unique(), default=df['tipo'].unique())
 valor_selecionado = st.sidebar.slider('Selecione o Valor', min_value=0, max_value=100000, value=(0, 100000))
 

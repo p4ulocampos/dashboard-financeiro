@@ -38,7 +38,7 @@ def buscar_dados():
 
     dfreceitas['tipo'] = 'Receitas'
 
-    colunas = ['data', 'descricao', 'categoria', 'valor', 'tipo', 'nome', 'dia_vencimento']
+    colunas = ['data', 'descricao', 'categoria', 'valor', 'tipo', 'nome', 'dia_vencimento', 'origem']
 
     df = pd.concat([dfreceitas, dfcartao, dffixas], ignore_index=True)
     df = df[colunas]
