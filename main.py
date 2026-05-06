@@ -33,7 +33,7 @@ if pagina == "📊 Dashboard Financeiro":
 
     df_filtrado = df[(df['mes_vencimento'] == mes_selecionado) &
                       (df['ano_vencimento'] == ano_selecionado) &
-                        (df['Origem'].isin(origem_selecionada)) &
+                        (df['origem'].isin(origem_selecionada)) &
                         (df['categoria'].isin(categoria_selecionada)) &
                         (df['valor'].between(*valor_selecionado))& 
                         (df['tipo'].isin(tipo_selecionado))].copy()
