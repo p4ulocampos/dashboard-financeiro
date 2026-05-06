@@ -2,11 +2,16 @@ import streamlit as st
 import pandas as pd
 from supabase import create_client, Client  # Biblioteca para conectar ao Supabase
 import plotly.express as px # Biblioteca para gráficos profissionais
-from extracao import df, supabase
+from extracao import buscar_dados, supabase
 
 
 st.set_page_config(page_title="Portal de Planejamento", layout="wide")
 
+df = buscar_dados()
+
+if st.button("🔄 Atualizar Dados"):
+    st.cache_data.clear() # Limpa o cache para garantir o dado mais novo
+    st.rerun()
 
 # --- MENU LATERAL (A nossa Navegação) ---
 st.sidebar.title("📌 Navegação")
