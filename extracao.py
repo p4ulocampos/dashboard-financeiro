@@ -16,6 +16,10 @@ def buscar_dados():
     dfcartao = supabase.table('cartao_credito').select("*").execute()
     dffixas = supabase.table('despesas_fixas').select("*").execute()
 
+    dfreceitas = pd.DataFrame(dfreceitas.data)
+    dfcartao = pd.DataFrame(dfcartao.data)
+    dffixas = pd.DataFrame(dffixas.data)
+
     dffixas['categoria'] = 'Despesa Fixa'
 
     # excluindo pagamentos do cartao
