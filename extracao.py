@@ -22,6 +22,10 @@ def buscar_dados():
 
     dffixas['categoria'] = 'Despesa Fixa'
 
+    dfcartao['origem'] = 'Cartão de Crédito'
+    dffixas['origem'] = 'Conta Corrente/PIX'
+    dfreceitas['origem'] = 'Débito'
+
     # excluindo pagamentos do cartao
     dfcartao = dfcartao[dfcartao['categoria'] != 'Pagamento']
     dfcartao = dfcartao.rename(columns={'nome_titular': 'nome'})

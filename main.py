@@ -3,6 +3,7 @@ import pandas as pd
 from supabase import create_client, Client  # Biblioteca para conectar ao Supabase
 import plotly.express as px # Biblioteca para gráficos profissionais
 from extracao import buscar_dados, supabase
+from datetime import datetime
 
 
 st.set_page_config(page_title="Portal de Planejamento", layout="wide")
@@ -16,14 +17,26 @@ if st.button("🔄 Atualizar Dados"):
 # --- MENU LATERAL (A nossa Navegação) ---
 st.sidebar.title("📌 Navegação")
 pagina = st.sidebar.selectbox("Selecione a página:", ["📊 Dashboard Financeiro", "📥 Realizar Lançamento"])
-mes_selecionado = st.sidebar.slider('Selecione o Mês', min_value=1, max_value=12)
-ano_selecionado = st.sidebar.slider('Selecione o Mês', min_value=2024, max_value=2027)
+mes_atual = datetime.now().month
+ano_atual = datetime.now().year
+mes_selecionado = st.sidebar.slider('Selecione o Mês', min_value=1, max_value=12, value=mes_atual)
+ano_selecionado = st.sidebar.slider('Selecione o Mês', min_value=2024, max_value=2027, value=ano_atual)
+categoria_selecionada = st.sidebar.multiselect('Selecione a Categoria', options=df['categoria'].unique(), default=df['categoria'].unique())
+origem_selecionada = st.sidebar.multiselect('Selecione a Origem', options=df['Origem'].unique(), default=df['Origem'].unique())
+tipo_selecionado = st.sidebar.multiselect('Selecione o Tipo', options=df['tipo'].unique(), default=df['tipo'].unique())
+valor_selecionado = st.sidebar.slider('Selecione o Valor', min_value=0, max_value=100000, value=(0, 100000))
+
 
 # --- PÁGINA 1: DASHBOARD ---
 if pagina == "📊 Dashboard Financeiro":
     st.title("📊 Dashboard de Controle Financeiro")
 
-    df_filtrado = df[(df['mes_vencimento'] == mes_selecionado) & (df['ano_vencimento'] == ano_selecionado)]
+    df_filtrado = df[(df['mes_vencimento'] == mes_selecionado) &
+                      (df['ano_vencimento'] == ano_selecionado) &
+                        (df['Origem'].isin(origem_selecionada)) &
+                        (df['categoria'].isin(categoria_selecionada)) &
+                        (df['valor'].between(*valor_selecionado))& 
+                        (df['tipo'].isin(tipo_selecionado))].copy()
 
 
     if not df.empty:
@@ -55,7 +68,16 @@ if pagina == "📊 Dashboard Financeiro":
             
         with c2:
             st.write("### Evolução dos Lançamentos")
-            st.dataframe(df_filtrado.sort_values('id', ascending=False), hide_index=True)
+            colunas = ['id', 'data', 'valor', 'descricao', 'categoria', 'tipo', 'nome', 'dia_vencimento']
+            df_filtrado_para_tabela = df_filtrado[colunas].copy()
+            # 1. Garanta que a coluna é do tipo datetime (essencial!)
+            df_filtrado_para_tabela['data'] = pd.to_datetime(df_filtrado_para_tabela['data'])
+            df_filtrado_para_tabela['dia_vencimento'] = pd.to_datetime(df_filtrado_para_tabela['dia_vencimento'])
+
+            # 2. Use o acessador .dt.strftime para formatar como dia/mês/ano
+            df_filtrado_para_tabela['data'] = df_filtrado_para_tabela['data'].dt.strftime('%d/%m/%Y')
+            df_filtrado_para_tabela['dia_vencimento'] = df_filtrado_para_tabela['dia_vencimento'].dt.strftime('%d/%m/%Y')
+            st.dataframe(df_filtrado_para_tabela.sort_values('id', ascending=False), hide_index=True)
 
     else:
         st.warning("O banco de dados está vazio. Vá para a página de lançamentos!")
