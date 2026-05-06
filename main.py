@@ -24,7 +24,7 @@ ano_selecionado = st.sidebar.slider('Selecione o Mês', min_value=2024, max_valu
 categoria_selecionada = st.sidebar.multiselect('Selecione a Categoria', options=df['categoria'].unique(), default=df['categoria'].unique())
 origem_selecionada = st.sidebar.multiselect('Selecione a Origem', options=df['origem'].unique(), default=df['origem'].unique())
 tipo_selecionado = st.sidebar.multiselect('Selecione o Tipo', options=df['tipo'].unique(), default=df['tipo'].unique())
-valor_selecionado = st.sidebar.slider('Selecione o Valor', min_value=0, max_value=100000, value=(0, 100000))
+valor_selecionado = st.sidebar.slider('Selecione o Valor', min_value=0, max_value=100000, value=(-10000, 100000))
 
 
 # --- PÁGINA 1: DASHBOARD ---
