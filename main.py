@@ -48,7 +48,7 @@ if pagina == "📊 Dashboard Financeiro":
     if categoria_selecionada:
         df_filtrado = df_filtrado[df_filtrado['categoria'].isin(categoria_selecionada)]
     if origem_selecionada:
-        df_filtrado = df_filtrado[df_filtrado['Origem'].isin(origem_selecionada)]
+        df_filtrado = df_filtrado[df_filtrado['origem'].isin(origem_selecionada)]
     if tipo_selecionado:
         df_filtrado = df_filtrado[df_filtrado['tipo'].isin(tipo_selecionado)]
 
