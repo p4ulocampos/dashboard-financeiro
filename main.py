@@ -29,7 +29,7 @@ with st.sidebar.expander("🛠️ Filtros Avançados", expanded=False):
     tipo_selecionado = st.multiselect('Tipo', df['tipo'].unique(), placeholder="Todos")
     categoria_selecionada = st.multiselect('Categoria', df['categoria'].unique(), placeholder="Todas")
     origem_selecionada = st.multiselect('origem', df['origem'].unique(), placeholder="Todas")
-    valor_selecionado = st.slider('Valor', -10000, 100000, (-10000, 100000))
+    valor_selecionado = st.slider('Valor', -10000, 10000, (-10000, 10000))
 
 
 # --- PÁGINA 1: DASHBOARD ---
