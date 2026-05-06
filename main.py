@@ -19,27 +19,41 @@ st.sidebar.title("📌 Navegação")
 pagina = st.sidebar.selectbox("Selecione a página:", ["📊 Dashboard Financeiro", "📥 Realizar Lançamento"])
 mes_atual = datetime.now().month
 ano_atual = datetime.now().year
-mes_selecionado = st.sidebar.slider('Selecione o Mês', min_value=1, max_value=12, value=mes_atual)
-ano_selecionado = st.sidebar.slider('Selecione o Mês', min_value=2024, max_value=2027, value=ano_atual)
-categoria_selecionada = st.sidebar.multiselect('Selecione a Categoria', options=df['categoria'].unique(), default=df['categoria'].unique())
-origem_selecionada = st.sidebar.multiselect('Selecione a Origem', options=df['origem'].unique(), default=df['origem'].unique())
-tipo_selecionado = st.sidebar.multiselect('Selecione o Tipo', options=df['tipo'].unique(), default=df['tipo'].unique())
-valor_selecionado = st.sidebar.slider('Selecione o Valor', min_value=0, max_value=100000, value=(-10000, 100000))
+
+# Filtros principais ficam soltos
+mes_selecionado = st.sidebar.slider('Mês', 1, 12, mes_atual)
+ano_selecionado = st.sidebar.slider('Ano', 2025, 2030, ano_atual)
+
+# Filtros secundários ficam guardados em um menu retrátil
+with st.sidebar.expander("🛠️ Filtros Avançados", expanded=False):
+    tipo_selecionado = st.multiselect('Tipo', df['tipo'].unique(), placeholder="Todos")
+    categoria_selecionada = st.multiselect('Categoria', df['categoria'].unique(), placeholder="Todas")
+    origem_selecionada = st.multiselect('origem', df['origem'].unique(), placeholder="Todas")
+    valor_selecionado = st.slider('Valor', -10000, 100000, (-10000, 100000))
 
 
 # --- PÁGINA 1: DASHBOARD ---
 if pagina == "📊 Dashboard Financeiro":
     st.title("📊 Dashboard de Controle Financeiro")
 
-    df_filtrado = df[(df['mes_vencimento'] == mes_selecionado) &
-                      (df['ano_vencimento'] == ano_selecionado) &
-                        (df['origem'].isin(origem_selecionada)) &
-                        (df['categoria'].isin(categoria_selecionada)) &
-                        (df['valor'].between(*valor_selecionado))& 
-                        (df['tipo'].isin(tipo_selecionado))].copy()
+    df_filtrado = df.copy()
+
+    # Aplica filtros de data e valor obrigatórios
+    df_filtrado = df_filtrado[
+        (df_filtrado['mes_vencimento'] == mes_selecionado) &
+        (df_filtrado['ano_vencimento'] == ano_selecionado) &
+        (df_filtrado['valor'].between(valor_selecionado[0], valor_selecionado[1]))
+    ]
+    # Aplica filtros de listas APENAS se o usuário selecionou algo
+    if categoria_selecionada:
+        df_filtrado = df_filtrado[df_filtrado['categoria'].isin(categoria_selecionada)]
+    if origem_selecionada:
+        df_filtrado = df_filtrado[df_filtrado['Origem'].isin(origem_selecionada)]
+    if tipo_selecionado:
+        df_filtrado = df_filtrado[df_filtrado['tipo'].isin(tipo_selecionado)]
 
 
-    if not df.empty:
+    if not df_filtrado.empty:
         # Tratamento de dados rápido (Data Engineering)
         df_filtrado['valor'] = pd.to_numeric(df_filtrado['valor'])
         
@@ -64,6 +78,7 @@ if pagina == "📊 Dashboard Financeiro":
             df_cat = df_filtrado[df_filtrado['tipo'] == 'Despesas'].groupby('categoria')['valor'].sum().reset_index()
             df_cat['valor'] = df_cat['valor'] *-1
             fig = px.bar(df_cat, x='categoria', y='valor', color='categoria', template="plotly_white")
+            fig.update_layout(xaxis={'categoryorder':'total descending'})
             st.plotly_chart(fig, use_container_width=True)
             
         with c2:
