@@ -3,6 +3,8 @@ from supabase import create_client
 import streamlit as st
 import numpy as np
 
+#testando branch
+
 # Inicialize o cliente aqui
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
