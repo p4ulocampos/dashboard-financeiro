@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 from supabase import create_client, Client
@@ -26,6 +27,7 @@ mes_selecionado = st.sidebar.slider('Mês', 1, 12, mes_atual)
 ano_selecionado = st.sidebar.slider('Ano', 2025, 2030, ano_atual)
 
 with st.sidebar.expander("🛠️ Filtros Avançados", expanded=False):
+    
     tipo_selecionado = st.multiselect('Tipo', df['tipo'].unique(), placeholder="Todos")
     categoria_selecionada = st.multiselect('Categoria', df['categoria'].unique(), placeholder="Todas")
     origem_selecionada = st.multiselect('origem', df['origem'].unique(), placeholder="Todas")
@@ -77,6 +79,7 @@ if pagina == "📊 Dashboard Financeiro":
             else:
                 progresso_receitas = 0
             st.progress(progresso_receitas)
+            st.caption(f"{progresso_receitas*100:.0f}% preenchido")
         
         with col_desp_m:
             st.metric("💸 Despesas", f"R$ {abs(total_despesas_pagas):,.2f}", f"de R$ {abs(total_despesas_previstas):,.2f}")
@@ -85,10 +88,23 @@ if pagina == "📊 Dashboard Financeiro":
             else:
                 progresso_despesas = 0
             st.progress(progresso_despesas)
+            st.caption(f"{progresso_despesas*100:.0f}% preenchido")
         
         with col_lucro:
-            lucro = total_receitas_recebidas + total_despesas_pagas
-            st.metric("📈 Lucro", f"R$ {lucro:,.2f}")
+            lucro_realizado = total_receitas_recebidas + total_despesas_pagas
+            lucro_previsto = total_receitas_previstas + total_despesas_previstas
+            st.metric("📈 Lucro", f"R$ {lucro_realizado:,.2f}", f"de R$ {lucro_previsto:,.2f}")
+            # calcular progresso do lucro apenas quando o lucro previsto for positivo
+            if lucro_previsto and lucro_previsto != 0:
+                if lucro_previsto > 0:
+                    progresso_lucro = lucro_realizado / lucro_previsto
+                    progresso_lucro = max(0, min(1, progresso_lucro))
+                else:
+                    progresso_lucro = 0
+            else:
+                progresso_lucro = 0
+            st.progress(progresso_lucro)
+            st.caption(f"{progresso_lucro*100:.0f}% preenchido")
         
         st.divider()
 
