@@ -22,6 +22,13 @@ def buscar_dados():
     dfcartao = pd.DataFrame(dfcartao.data)
     dffixas = pd.DataFrame(dffixas.data)
 
+    # Garantir que coluna 'confirmado' existe (preenchida com False se não existir)
+    for df in [dfreceitas, dfcartao, dffixas]:
+        if 'confirmado' not in df.columns:
+            df['confirmado'] = False
+        else:
+            df['confirmado'] = df['confirmado'].fillna(False)
+
     dffixas['categoria'] = 'Despesa Fixa'
 
     dfcartao['origem'] = 'Cartão de Crédito'
@@ -40,7 +47,13 @@ def buscar_dados():
 
     dfreceitas['tipo'] = 'Receitas'
 
-    colunas = ['data', 'descricao', 'categoria', 'valor', 'tipo', 'nome', 'dia_vencimento', 'origem']
+    # Garantir que 'nome_do_banco' existe em todas as tabelas
+    if 'banco_do_cartao' not in dfreceitas.columns:
+        dfreceitas['banco_do_cartao'] = None
+    if 'banco_do_cartao' not in dffixas.columns:
+        dffixas['banco_do_cartao'] = None
+
+    colunas = ['data', 'descricao', 'categoria', 'valor', 'tipo', 'nome', 'dia_vencimento', 'origem', 'confirmado', 'banco_do_cartao']
 
     df = pd.concat([dfreceitas, dfcartao, dffixas], ignore_index=True)
     df = df[colunas]
@@ -63,3 +76,20 @@ def buscar_dados():
 
     df['id'] = df.index
     return df
+
+def atualizar_confirmacao(tipo_tabela, data, descricao, valor_original, confirmado):
+    """Atualiza o status de confirmação usando data + descricao + valor como identificador"""
+    try:
+        # Para despesas, o valor foi multiplicado por -1, precisamos reverter para buscar o original
+        valor_banco = abs(float(valor_original))
+        
+        response = supabase.table(tipo_tabela).update({'confirmado': confirmado}).eq('data', str(data)).eq('descricao', descricao).eq('valor', valor_banco).execute()
+        
+        if response.data:
+            return True
+        else:
+            st.warning(f"Nenhum registro encontrado para atualizar")
+            return False
+    except Exception as e:
+        st.error(f"Erro ao atualizar confirmação: {e}")
+        return False
