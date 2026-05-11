@@ -59,10 +59,18 @@ def buscar_dados():
     if 'banco_do_cartao' not in dffixas.columns:
         dffixas['banco_do_cartao'] = None
 
-    colunas = ['data', 'descricao', 'categoria', 'valor', 'tipo', 'nome', 'dia_vencimento', 'origem', 'confirmado', 'banco_do_cartao']
+
+    colunas = ['data', 'descricao', 'categoria', 'valor', 'tipo', 'nome', 'dia_vencimento', 'origem', 'confirmado', 'banco_do_cartao', 'titular_cartao']
+
+    # Garantir que todas as colunas esperadas existam em cada tabela antes de concatenar
+    required_cols = colunas.copy()
+    for _df in [dfreceitas, dfcartao, dffixas]:
+        for c in required_cols:
+            if c not in _df.columns:
+                _df[c] = None
 
     df = pd.concat([dfreceitas, dfcartao, dffixas], ignore_index=True)
-    df = df[colunas]
+    df = df[required_cols]
 
     df['categoria'] = np.where(df['descricao'].str.startswith('Salário'), 'Salário', df['categoria'])
     df['categoria'] = np.where(df['descricao'].str.startswith('Pensão'), 'Pensão', df['categoria'])
