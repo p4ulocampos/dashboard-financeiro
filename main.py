@@ -13,25 +13,26 @@ st.set_page_config(page_title="Portal de Planejamento", layout="wide")
 
 df = buscar_dados()
 
+
 if st.button("🔄 Atualizar Dados"):
     st.cache_data.clear()
     st.rerun()
 
 # --- MENU LATERAL ---
 st.sidebar.title("📌 Navegação")
-pagina = st.sidebar.selectbox("Selecione a página:", ["📊 Dashboard Financeiro", "📥 Realizar Lançamento"])
+pagina = st.sidebar.selectbox("Selecione a página:", ["📊 Dashboard Financeiro", "📥 Realizar Lançamento (Cartão Crédito)", 'Lançamento Receita'])
 mes_atual = datetime.now().month
 ano_atual = datetime.now().year
 
 mes_selecionado = st.sidebar.slider('Mês', 1, 12, mes_atual)
 ano_selecionado = st.sidebar.slider('Ano', 2025, 2030, ano_atual)
 
-with st.sidebar.expander("🛠️ Filtros Avançados", expanded=False):
+with st.sidebar.expander("Filtros Avançados", expanded=False):
     
     tipo_selecionado = st.multiselect('Tipo', df['tipo'].unique(), placeholder="Todos")
     categoria_selecionada = st.multiselect('Categoria', df['categoria'].unique(), placeholder="Todas")
     origem_selecionada = st.multiselect('origem', df['origem'].unique(), placeholder="Todas")
-    valor_selecionado = st.slider('Valor', -10000, 10000, (-10000, 10000))
+    valor_selecionado = st.slider('Valor', -6000, 10000, (-6000, 10000))
 
 
 # --- PÁGINA 1: DASHBOARD ---
@@ -208,7 +209,7 @@ if pagina == "📊 Dashboard Financeiro":
                     df_banco = despesas_cartao[despesas_cartao['banco_do_cartao'].str.contains(banco, case=False, na=False)]
                     
                     if not df_banco.empty:
-                        st.caption(f"🏢 {banco}")
+                        st.caption(f"🏢 {banco}  | R$ {df_banco['valor'].sum():,.2f}")
                         col_b1, col_b2 = st.columns(2)
                         
                         df_pend = df_banco[df_banco['confirmado'] == False]
@@ -216,6 +217,12 @@ if pagina == "📊 Dashboard Financeiro":
                         
                         with col_b1:
                             st.caption("Não Pago")
+                            if st.button("Pagar Tudo", key=f"pagar_tudo_{banco}", help="Confirmar pagamento de todas as despesas deste cartão"):
+                                for idx, row in df_pend.iterrows():
+                                    atualizar_confirmacao('cartao_credito', row['data'], row['descricao'], row['valor'], True)
+                                st.cache_data.clear()
+                                time.sleep(1)
+                                st.rerun()
                             if not df_pend.empty:
                                 for idx, row in df_pend.iterrows():
                                     col_item, col_btn = st.columns([4, 1])
@@ -281,40 +288,69 @@ if pagina == "📊 Dashboard Financeiro":
         st.warning("O banco de dados está vazio ou não há registros para este período!")
 
 # --- PÁGINA 2: LANÇAMENTOS ---
-elif pagina == "📥 Realizar Lançamento":
-    st.title("📥 Novo Lançamento")
+elif pagina == "📥 Realizar Lançamento (Cartão Crédito)":
+    st.title("📥 Realizar Lançamento (Cartão Crédito)")
     
-    senha = st.sidebar.text_input("Senha de Acesso", type="password")
-    
-    if senha == "financeiro2026":
-        with st.form("form_registro", clear_on_submit=True):
-            data = st.date_input("Data")
-            cat = st.text_input("Categoria")
-            val = st.number_input("Valor do Gasto", min_value=0.0)
-            desc = st.text_input("Descrição")
-            nome = st.text_input("Nome do Titular")
-            dia_vencimento = st.date_input("Dia de Vencimento")
-            banco_cartao = st.selectbox("Banco/Cartão", ['Nubank', 'Itaú', 'Mercado Pago'])
-            sub = st.form_submit_button("Registrar no Banco")
+    with st.form("form_registro", clear_on_submit=True):
+        data = st.date_input("Data", value=datetime.now().date())
+        cat = st.text_input("Categoria")
+        val = st.number_input("Valor do Gasto", min_value=0.0)
+        desc = st.text_input("Descrição")
+        nome = st.selectbox("Nome do Titular da Compra", ['Paulo', 'Mariana', 'Dividido'])
+        dia_vencimento = st.date_input("Dia de Vencimento", value=datetime(datetime.now().year, (datetime.now().month % 12) + 1, 9).date())
+        banco_cartao = st.selectbox("Banco/Cartão", ['Nubank', 'Itaú', 'Mercado Pago'])
+        titular_cartao = st.selectbox("Titular do Cartão", ['Paulo', 'Mariana'])
+        sub = st.form_submit_button("Registrar no Banco")
             
-            if sub:
-                if val > 0:
-                    try:
-                        novo_item ={
-                        'data': str(data), 
-                        'valor': val, 
-                        'descricao': desc,      
-                        'categoria': cat, 
-                        'nome_titular': nome, 
-                        'dia_vencimento': str(dia_vencimento), 
-                        'banco_do_cartao': banco_cartao,
-                        'confirmado': False
-                        }
-                        supabase.table("cartao_credito").insert(novo_item).execute()
-                        st.success("Lançamento realizado! Verifique o Dashboard.")
-                    except Exception as e:
-                        st.error(f"Erro: {e}")
-                else:
-                    st.error("Verifique se o campo 'Valor do Gasto' o valor é maior que 0.")
-    else:
-        st.error("Por favor, insira a senha correta na barra lateral para liberar o formulário.")
+        if sub:
+            if val > 0:
+                try:
+                    novo_item ={
+                    'data': str(data), 
+                    'valor': val, 
+                    'descricao': desc,      
+                    'categoria': cat, 
+                    'nome_titular': nome, 
+                    'dia_vencimento': str(dia_vencimento),
+                    'banco_do_cartao': banco_cartao,
+                    'confirmado': False,
+                    'titular_cartao': titular_cartao
+                    }
+                    supabase.table("cartao_credito").insert(novo_item).execute()
+                    st.success("Lançamento realizado! Verifique o Dashboard.")
+                except Exception as e:
+                    st.error(f"Erro: {e}")
+            else:
+                st.error("Verifique se o campo 'Valor do Gasto' o valor é maior que 0.")
+        else:
+            st.error("Por favor, insira a senha correta na barra lateral para liberar o formulário.")
+
+
+# --- PÁGINA 3: LANÇAMENTOS RECEITAS---
+elif pagina == "Lançamento Receita":
+    st.title("Lançamento Receita")
+    
+    with st.form("form_registro", clear_on_submit=True):
+        data = st.date_input("Data", value=datetime.now().date())
+        desc = st.text_input("Descrição")
+        val = st.number_input("Valor Recebido", min_value=0.0)
+        nome = st.text_input("Nome")
+        confirmado = st.selectbox("Recebido", [True, False])
+        sub = st.form_submit_button("Registrar no Banco")
+            
+        if sub:
+            if val > 0:
+                try:
+                    novo_item ={
+                    'data': str(data), 
+                    'descricao': desc, 
+                    'valor': val, 
+                    'nome': nome,
+                    'confirmado': confirmado
+                    }
+                    supabase.table("receitas").insert(novo_item).execute()
+                    st.success("Lançamento de Receita realizado! Verifique o Dashboard.")
+                except Exception as e:
+                    st.error(f"Erro: {e}")
+            else:
+                st.error("Verifique se o campo 'Valor Recebido' o valor é maior que 0.")
