@@ -109,6 +109,57 @@ if pagina == "📊 Dashboard Financeiro":
         
         st.divider()
 
+        # --- Métricas de Despesas por Origem ---
+        st.subheader("💸 Despesas por Origem")
+
+        despesas_cartao = despesas[despesas['origem'] == 'Cartão de Crédito']
+        despesas_fixas = despesas[despesas['origem'] == 'Conta Corrente/PIX']
+        col_cartao, col_fixas = st.columns(2)
+
+        with col_cartao:
+            st.write("**Cartão de Crédito**")
+            total_cartao_previsto = despesas_cartao['valor'].sum()
+            total_cartao_pago = despesas_cartao[despesas_cartao['confirmado'] == True]['valor'].sum()
+            st.metric("Total Cartão", f"R$ {abs(total_cartao_pago):,.2f}", f"de R$ {abs(total_cartao_previsto):,.2f}")
+            if abs(total_cartao_previsto) > 0:
+                progresso_cartao = abs(total_cartao_pago) / abs(total_cartao_previsto)
+            else:
+                progresso_cartao = 0
+            st.progress(progresso_cartao)
+            st.caption(f"{progresso_cartao*100:.0f}% preenchido")
+
+        with col_fixas:
+            st.write("**Despesas Fixas**")
+            total_fixas_previsto = despesas_fixas['valor'].sum()
+            total_fixas_pago = despesas_fixas[despesas_fixas['confirmado'] == True]['valor'].sum()
+            st.metric("Total Fixas", f"R$ {abs(total_fixas_pago):,.2f}", f"de R$ {abs(total_fixas_previsto):,.2f}")
+            if abs(total_fixas_previsto) > 0:
+                progresso_fixas = abs(total_fixas_pago) / abs(total_fixas_previsto)
+            else:
+                progresso_fixas = 0
+            st.progress(progresso_fixas)
+            st.caption(f"{progresso_fixas*100:.0f}% preenchido")
+
+        # --- Depesas por Cartões ---
+        st.subheader("💳 Despesas por Cartão"
+        )
+        despesas_cartao = despesas[despesas['origem'] == 'Cartão de Crédito']
+        if not despesas_cartao.empty:
+            bancos = ['Nubank', 'Itaú', 'Mercado Pago']
+            for banco in bancos:
+                df_banco = despesas_cartao[despesas_cartao['banco_do_cartao'].str.contains(banco, case=False, na=False)]
+                if not df_banco.empty:
+                    total_banco_previsto = df_banco['valor'].sum()
+                    total_banco_pago = df_banco[df_banco['confirmado'] == True]['valor'].sum()
+                    st.metric(f"🏢 {banco}", f"R$ {abs(total_banco_pago):,.2f}", f"de R$ {abs(total_banco_previsto):,.2f}")
+                    if abs(total_banco_previsto) > 0:
+                        progresso_banco = abs(total_banco_pago) / abs(total_banco_previsto)
+                    else:
+                        progresso_banco = 0
+                    st.progress(progresso_banco)
+                    st.caption(f"{progresso_banco*100:.0f}% preenchido")
+
+
         # --- RECEITAS EM EXPANDER ---
         with st.expander("📥 Receitas", expanded=False):
             receitas_previstas = receitas[receitas['confirmado'] == False].copy()
@@ -149,6 +200,7 @@ if pagina == "📊 Dashboard Financeiro":
                                     st.rerun()
                 else:
                     st.caption("Nenhuma confirmada")
+                    
         
         # --- DESPESAS EM EXPANDER (AGRUPADAS) ---
         with st.expander("📤 Despesas", expanded=False):
