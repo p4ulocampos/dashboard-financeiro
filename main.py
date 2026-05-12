@@ -314,7 +314,13 @@ if pagina == "📊 Dashboard Financeiro":
         st.subheader("📊 Gastos por Categoria"
                      )
         df_despesas_categoria = despesas.groupby('categoria')['valor'].sum().reset_index()
-        st.dataframe(df_despesas_categoria.style.format({"valor": "R$ {0:,.2f}"}), hide_index=True)
+        df_despesas_categoria = df_despesas_categoria.sort_values(by='valor', ascending=False)
+        df_despesas_categoria['percentual'] = df_despesas_categoria['valor'] / df_despesas_categoria['valor'].sum()
+        st.dataframe(df_despesas_categoria.style.format({"valor": "R$ {0:,.2f}", "percentual": "{0:.2%}"}), hide_index=True)
+        fig = px.bar(df_despesas_categoria, x='categoria', y='valor', text=df_despesas_categoria['valor'].apply(lambda x: f"R$ {x:,.2f}"), color='categoria')
+        fig.update_layout(showlegend=False, xaxis_title="Categoria", yaxis_title="Valor Total", title="Gastos por Categoria")
+        st.plotly_chart(fig, use_container_width=True)
+
 
 # --- PÁGINA 2: LANÇAMENTOS ---
 elif pagina == "📥 Realizar Lançamento (Cartão Crédito)":
