@@ -213,42 +213,42 @@ if pagina == "📊 Dashboard Financeiro":
             
             if not despesas_fixas.empty:
                 st.write("**🏦 Despesas Fixas**")
-                st.expander('Depesas de moradia, assinaturas, contas mensais, etc.', expanded=False)
-                col_fix1, col_fix2 = st.columns(2)
-                
-                with col_fix1:
-                    st.caption("Não Pagas")
-                    if not despesas_fixas_pend.empty:
-                        for idx, row in despesas_fixas_pend.iterrows():
-                            col_item, col_btn = st.columns([4, 1])
-                            with col_item:
-                                st.text(f"{row['descricao']} - R$ {abs(row['valor']):,.2f}")
-                            with col_btn:
-                                if st.button("✓", key=f"fix_confirm_{idx}", help="Confirmar"):
-                                    if atualizar_confirmacao('despesas_fixas', row['data'], row['descricao'], row['valor'], True):
-                                        st.cache_data.clear()
-                                        time.sleep(1)
-                                        st.rerun()
-                    else:
-                        st.caption("Todas pagas ✓")
-                
-                with col_fix2:
-                    st.caption("Pagas ✓")
-                    if not despesas_fixas_conf.empty:
-                        for idx, row in despesas_fixas_conf.iterrows():
-                            col_item, col_btn = st.columns([4, 1])
-                            with col_item:
-                                st.text(f"{row['descricao']} - R$ {abs(row['valor']):,.2f}")
-                            with col_btn:
-                                if st.button("✗", key=f"fix_unconfirm_{idx}", help="Desfazer"):
-                                    if atualizar_confirmacao('despesas_fixas', row['data'], row['descricao'], row['valor'], False):
-                                        st.cache_data.clear()
-                                        time.sleep(1)
-                                        st.rerun()
-                    else:
-                        st.caption("Nenhuma confirmada")
-                
-                st.divider()
+                with st.expander('Depesas de moradia, assinaturas, contas mensais, etc.', expanded=False):
+                    col_fix1, col_fix2 = st.columns(2)
+                    
+                    with col_fix1:
+                        st.caption("Não Pagas")
+                        if not despesas_fixas_pend.empty:
+                            for idx, row in despesas_fixas_pend.iterrows():
+                                col_item, col_btn = st.columns([4, 1])
+                                with col_item:
+                                    st.text(f"{row['descricao']} - R$ {abs(row['valor']):,.2f}")
+                                with col_btn:
+                                    if st.button("✓", key=f"fix_confirm_{idx}", help="Confirmar"):
+                                        if atualizar_confirmacao('despesas_fixas', row['data'], row['descricao'], row['valor'], True):
+                                            st.cache_data.clear()
+                                            time.sleep(1)
+                                            st.rerun()
+                        else:
+                            st.caption("Todas pagas ✓")
+                    
+                    with col_fix2:
+                        st.caption("Pagas ✓")
+                        if not despesas_fixas_conf.empty:
+                            for idx, row in despesas_fixas_conf.iterrows():
+                                col_item, col_btn = st.columns([4, 1])
+                                with col_item:
+                                    st.text(f"{row['descricao']} - R$ {abs(row['valor']):,.2f}")
+                                with col_btn:
+                                    if st.button("✗", key=f"fix_unconfirm_{idx}", help="Desfazer"):
+                                        if atualizar_confirmacao('despesas_fixas', row['data'], row['descricao'], row['valor'], False):
+                                            st.cache_data.clear()
+                                            time.sleep(1)
+                                            st.rerun()
+                        else:
+                            st.caption("Nenhuma confirmada")
+                    
+                    st.divider()
             
             # Despesas de Cartão (por banco)
             despesas_cartao = despesas[despesas['origem'] == 'Cartão de Crédito'].copy()
@@ -263,52 +263,52 @@ if pagina == "📊 Dashboard Financeiro":
                     
                     if not df_banco.empty:
                         st.caption(f"🏢 {banco}  | R$ {df_banco['valor'].sum():,.2f}")
-                        st.expander(f"Despesas do {banco}", expanded=False)
-                        col_b1, col_b2 = st.columns(2)
-                        
-                        df_pend = df_banco[df_banco['confirmado'] == False]
-                        df_conf = df_banco[df_banco['confirmado'] == True]
-                        
-                        with col_b1:
-                            st.caption("Não Pago")
-                            if st.button("Pagar Tudo", key=f"pagar_tudo_{banco}", help="Confirmar pagamento de todas as despesas deste cartão"):
-                                for idx, row in df_pend.iterrows():
-                                    atualizar_confirmacao('cartao_credito', row['data'], row['descricao'], row['valor'], True)
-                                st.cache_data.clear()
-                                time.sleep(1)
-                                st.rerun()
-                            if not df_pend.empty:
-                                for idx, row in df_pend.iterrows():
-                                    col_item, col_btn = st.columns([4, 1])
-                                    with col_item:
-                                        st.text(f"{row['descricao']} - R$ {abs(row['valor']):,.2f}")
-                                    with col_btn:
-                                        if st.button("✓", key=f"cartao_confirm_{idx}", help="Confirmar"):
-                                            if atualizar_confirmacao('cartao_credito', row['data'], row['descricao'], row['valor'], True):
-                                                st.cache_data.clear()
-                                                time.sleep(1)
-                                                st.rerun()
-                            else:
-                                st.caption("Tudo pago ✓")
-                        
-                        with col_b2:
-                            st.caption("Pago ✓")
-                            if not df_conf.empty:
-                                for idx, row in df_conf.iterrows():
-                                    col_item, col_btn = st.columns([4, 1])
-                                    with col_item:
-                                        st.text(f"{row['descricao']} - R$ {abs(row['valor']):,.2f}")
-                                    with col_btn:
-                                        if st.button("✗", key=f"cartao_unconfirm_{idx}", help="Desfazer"):
-                                            if atualizar_confirmacao('cartao_credito', row['data'], row['descricao'], row['valor'], False):
-                                                st.cache_data.clear()
-                                                time.sleep(1)
-                                                st.rerun()
-                            else:
-                                st.caption("Nenhuma confirmada")
-                        
-                        st.divider()
-        
+                        with st.expander(f"Despesas do {banco}", expanded=False):
+                            col_b1, col_b2 = st.columns(2)
+                            
+                            df_pend = df_banco[df_banco['confirmado'] == False]
+                            df_conf = df_banco[df_banco['confirmado'] == True]
+                            
+                            with col_b1:
+                                st.caption("Não Pago")
+                                if st.button("Pagar Tudo", key=f"pagar_tudo_{banco}", help="Confirmar pagamento de todas as despesas deste cartão"):
+                                    for idx, row in df_pend.iterrows():
+                                        atualizar_confirmacao('cartao_credito', row['data'], row['descricao'], row['valor'], True)
+                                    st.cache_data.clear()
+                                    time.sleep(1)
+                                    st.rerun()
+                                if not df_pend.empty:
+                                    for idx, row in df_pend.iterrows():
+                                        col_item, col_btn = st.columns([4, 1])
+                                        with col_item:
+                                            st.text(f"{row['descricao']} - R$ {abs(row['valor']):,.2f}")
+                                        with col_btn:
+                                            if st.button("✓", key=f"cartao_confirm_{idx}", help="Confirmar"):
+                                                if atualizar_confirmacao('cartao_credito', row['data'], row['descricao'], row['valor'], True):
+                                                    st.cache_data.clear()
+                                                    time.sleep(1)
+                                                    st.rerun()
+                                else:
+                                    st.caption("Tudo pago ✓")
+                            
+                            with col_b2:
+                                st.caption("Pago ✓")
+                                if not df_conf.empty:
+                                    for idx, row in df_conf.iterrows():
+                                        col_item, col_btn = st.columns([4, 1])
+                                        with col_item:
+                                            st.text(f"{row['descricao']} - R$ {abs(row['valor']):,.2f}")
+                                        with col_btn:
+                                            if st.button("✗", key=f"cartao_unconfirm_{idx}", help="Desfazer"):
+                                                if atualizar_confirmacao('cartao_credito', row['data'], row['descricao'], row['valor'], False):
+                                                    st.cache_data.clear()
+                                                    time.sleep(1)
+                                                    st.rerun()
+                                else:
+                                    st.caption("Nenhuma confirmada")
+                            
+                            st.divider()
+            
         # --- GRÁFICO DE GASTOS POR CATEGORIA ---
         st.divider()
         st.subheader("📊 Gastos por Categoria"
