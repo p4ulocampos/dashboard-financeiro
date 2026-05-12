@@ -110,14 +110,14 @@ if pagina == "📊 Dashboard Financeiro":
         st.divider()
 
         # --- Métricas de Despesas por Origem ---
-        st.subheader("💸 Despesas por Origem")
+        st.subheader("Despesas por Origem")
 
         despesas_cartao = despesas[despesas['origem'] == 'Cartão de Crédito']
         despesas_fixas = despesas[despesas['origem'] == 'Conta Corrente/PIX']
         col_cartao, col_fixas = st.columns(2)
 
         with col_cartao:
-            st.write("**Cartão de Crédito**")
+            st.write("**💳 Cartão de Crédito**")
             total_cartao_previsto = despesas_cartao['valor'].sum()
             total_cartao_pago = despesas_cartao[despesas_cartao['confirmado'] == True]['valor'].sum()
             st.metric("Total Cartão", f"R$ {abs(total_cartao_pago):,.2f}", f"de R$ {abs(total_cartao_previsto):,.2f}")
@@ -129,7 +129,7 @@ if pagina == "📊 Dashboard Financeiro":
             st.caption(f"{progresso_cartao*100:.0f}% preenchido")
 
         with col_fixas:
-            st.write("**Despesas Fixas**")
+            st.write("**🏠 Despesas Fixas**")
             total_fixas_previsto = despesas_fixas['valor'].sum()
             total_fixas_pago = despesas_fixas[despesas_fixas['confirmado'] == True]['valor'].sum()
             st.metric("Total Fixas", f"R$ {abs(total_fixas_pago):,.2f}", f"de R$ {abs(total_fixas_previsto):,.2f}")
@@ -213,6 +213,7 @@ if pagina == "📊 Dashboard Financeiro":
             
             if not despesas_fixas.empty:
                 st.write("**🏦 Despesas Fixas**")
+                st.expander('Depesas de moradia, assinaturas, contas mensais, etc.', expanded=False)
                 col_fix1, col_fix2 = st.columns(2)
                 
                 with col_fix1:
@@ -262,6 +263,7 @@ if pagina == "📊 Dashboard Financeiro":
                     
                     if not df_banco.empty:
                         st.caption(f"🏢 {banco}  | R$ {df_banco['valor'].sum():,.2f}")
+                        st.expander(f"Despesas do {banco}", expanded=False)
                         col_b1, col_b2 = st.columns(2)
                         
                         df_pend = df_banco[df_banco['confirmado'] == False]
@@ -309,35 +311,10 @@ if pagina == "📊 Dashboard Financeiro":
         
         # --- GRÁFICO DE GASTOS POR CATEGORIA ---
         st.divider()
-        st.subheader("📊 Gastos por Categoria")
-        
-        df_gastos = df_filtrado[df_filtrado['tipo'] == 'Despesas'].copy()
-        if not df_gastos.empty:
-            df_cat = df_gastos.groupby('categoria')['valor'].sum().reset_index()
-            df_cat['valor'] = df_cat['valor'].abs()
-            df_cat = df_cat.sort_values('valor', ascending=True)
-            
-            fig = px.bar(
-                df_cat, 
-                y='categoria', 
-                x='valor', 
-                orientation='h',
-                color='valor',
-                color_continuous_scale='Reds',
-                labels={'valor': 'Valor (R$)', 'categoria': 'Categoria'},
-                template='plotly_white'
-            )
-            fig.update_layout(
-                height=400,
-                showlegend=False,
-                yaxis={'categoryorder': 'total ascending'}
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("Nenhuma despesa registrada para este período")
-
-    else:
-        st.warning("O banco de dados está vazio ou não há registros para este período!")
+        st.subheader("📊 Gastos por Categoria"
+                     )
+        df_despesas_categoria = despesas.groupby('categoria')['valor'].sum().reset_index()
+        st.dataframe(df_despesas_categoria.style.format({"valor": "R$ {0:,.2f}"}), hide_index=True)
 
 # --- PÁGINA 2: LANÇAMENTOS ---
 elif pagina == "📥 Realizar Lançamento (Cartão Crédito)":
