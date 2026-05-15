@@ -37,7 +37,7 @@ with st.sidebar.expander("Filtros Avançados", expanded=False):
 
 # --- PÁGINA 1: DASHBOARD ---
 if pagina == "📊 Dashboard Financeiro":
-    st.title("📊 Dashboard de Controle Financeiro")
+    st.title("📊 Controle Financeiro")
 
     df_filtrado = df.copy()
 
@@ -130,18 +130,35 @@ if pagina == "📊 Dashboard Financeiro":
 
 
         # --- Depesas por Cartões ---
+        st.divider()
         st.subheader("💳 Despesas por Cartão"
         )
         despesas_cartao = despesas[despesas['origem'] == 'Cartão de Crédito']
         if not despesas_cartao.empty:
             bancos = ['Nubank', 'Itaú', 'Mercado Pago']
-            for banco in bancos:
+            col_nu, col_ita, col_mp = st.columns(3)
+            with col_nu:
+                banco = 'Nubank'
+                df_banco = despesas_cartao[despesas_cartao['banco_do_cartao'].str.contains(banco, case=False, na=False)]
+                if not df_banco.empty:
+                    total_banco_previsto = df_banco['valor'].sum()
+                    total_banco_pago = df_banco[df_banco['confirmado'] == True]['valor'].sum()
+                    st.metric(f"🏢 {banco}", f"R$ {abs(total_banco_pago):,.2f}", f"de R$ {abs(total_banco_previsto):,.2f}")
+            with col_ita:
+                banco = 'Itaú'
                 df_banco = despesas_cartao[despesas_cartao['banco_do_cartao'].str.contains(banco, case=False, na=False)]
                 if not df_banco.empty:
                     total_banco_previsto = df_banco['valor'].sum()
                     total_banco_pago = df_banco[df_banco['confirmado'] == True]['valor'].sum()
                     st.metric(f"🏢 {banco}", f"R$ {abs(total_banco_pago):,.2f}", f"de R$ {abs(total_banco_previsto):,.2f}")
 
+            with col_mp:
+                banco = 'Mercado Pago'
+                df_banco = despesas_cartao[despesas_cartao['banco_do_cartao'].str.contains(banco, case=False, na=False)]
+                if not df_banco.empty:
+                    total_banco_previsto = df_banco['valor'].sum()
+                    total_banco_pago = df_banco[df_banco['confirmado'] == True]['valor'].sum()
+                    st.metric(f"🏢 {banco}", f"R$ {abs(total_banco_pago):,.2f}", f"de R$ {abs(total_banco_previsto):,.2f}")
 
         # --- RECEITAS EM EXPANDER ---
         with st.expander("📥 Receitas", expanded=False):
@@ -332,7 +349,8 @@ elif pagina == "📥 Realizar Lançamento (Cartão Crédito)":
                     'dia_vencimento': str(dia_vencimento),
                     'banco_do_cartao': banco_cartao,
                     'confirmado': False,
-                    'titular_cartao': titular_cartao
+                    'titular_cartao': titular_cartao,
+                    'lancado_em': datetime.now().isoformat()
                     }
                     supabase.table("cartao_credito").insert(novo_item).execute()
                     st.success("Lançamento realizado! Verifique o Dashboard.")
@@ -364,7 +382,8 @@ elif pagina == "Lançamento Receita":
                     'descricao': desc, 
                     'valor': val, 
                     'nome': nome,
-                    'confirmado': confirmado
+                    'confirmado': confirmado,
+                    'lancado_em': datetime.now().isoformat()
                     }
                     supabase.table("receitas").insert(novo_item).execute()
                     st.success("Lançamento de Receita realizado! Verifique o Dashboard.")

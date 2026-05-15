@@ -60,7 +60,7 @@ def buscar_dados():
         dffixas['banco_do_cartao'] = None
 
 
-    colunas = ['data', 'descricao', 'categoria', 'valor', 'tipo', 'nome', 'dia_vencimento', 'origem', 'confirmado', 'banco_do_cartao', 'titular_cartao']
+    colunas = ['data', 'descricao', 'categoria', 'valor', 'tipo', 'nome', 'dia_vencimento', 'origem', 'confirmado', 'banco_do_cartao', 'titular_cartao', 'lancado_em']
 
     # Garantir que todas as colunas esperadas existam em cada tabela antes de concatenar
     required_cols = colunas.copy()
@@ -80,7 +80,12 @@ def buscar_dados():
     df['data'] = pd.to_datetime(df['data'])
     df['dia_vencimento'] = pd.to_datetime(df['dia_vencimento'])
 
+    # Parse lançamento timestamp if exists and fill missing with data
+    df['lancado_em'] = pd.to_datetime(df['lancado_em'], errors='coerce')
+
     df['dia_vencimento'] = df['dia_vencimento'].fillna(df['data'])
+
+    df['lancado_em'] = df['lancado_em'].fillna(df['data'])
 
     df['mes'] = df['data'].dt.month
     df['ano'] = df['data'].dt.year
