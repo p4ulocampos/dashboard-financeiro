@@ -85,7 +85,7 @@ def buscar_dados():
 
     df['dia_vencimento'] = df['dia_vencimento'].fillna(df['data'])
 
-    df['lancado_em'] = df['lancado_em'].fillna(df['data'])
+    # df['lancado_em'] = df['lancado_em'].fillna(df['data'])
 
     df['mes'] = df['data'].dt.month
     df['ano'] = df['data'].dt.year

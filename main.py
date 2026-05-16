@@ -349,7 +349,7 @@ elif pagina == "Lançamento Cartão Crédito":
             else:
                 st.error("Verifique se o campo 'Valor do Gasto' o valor é maior que 0.")
         
-        df = df[df['origem'] == 'Cartão de Crédito'] & df['tipo'] == 'Despesas'
+        df = df[(df['origem'] == 'Cartão de Crédito') & (df['tipo'] == 'Despesas')]
         df = df.sort_values(by='lancado_em', ascending=False)
         
         st.subheader("Últimos lançamentos")
@@ -388,7 +388,7 @@ elif pagina == "Lançamento Débito":
                 st.error("Verifique se o campo 'Valor' o valor é maior que 0.")
 
         
-        df = df[df['origem'] == 'Conta Corrente/PIX'] & df['tipo'] == 'Despesas'
+        df = df[(df['origem'] == 'Conta Corrente/PIX') & (df['tipo'] == 'Despesas')]
         df = df.sort_values(by='lancado_em', ascending=False)
         
         st.subheader("Últimos lançamentos")
@@ -429,5 +429,8 @@ elif pagina == "Lançamento Receita":
         df = df[df['tipo'] == 'Receitas']
         df = df.sort_values(by='lancado_em', ascending=False)
         
-        st.subheader("Últimos lançamentos")
-        st.dataframe(df.head(10), use_container_width=True)
+        if df.empty:
+            st.write("Nenhum lançamento de receita registrado ainda.")
+        else:
+            st.subheader("Últimos lançamentos")
+            st.dataframe(df.head(10), use_container_width=True)
