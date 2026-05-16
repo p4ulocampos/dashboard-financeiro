@@ -350,6 +350,7 @@ elif pagina == "Lançamento Cartão Crédito":
                 st.error("Verifique se o campo 'Valor do Gasto' o valor é maior que 0.")
         
         df = df[(df['origem'] == 'Cartão de Crédito') & (df['tipo'] == 'Despesas')]
+        df = df[df['lancado_em'] != None]
         df = df.sort_values(by='lancado_em', ascending=False)
         
         st.subheader("Últimos lançamentos")
