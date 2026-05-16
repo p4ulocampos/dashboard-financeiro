@@ -20,7 +20,7 @@ if st.button("🔄 Atualizar Dados"):
 
 # --- MENU LATERAL ---
 st.sidebar.title("📌 Navegação")
-pagina = st.sidebar.selectbox("Selecione a página:", ["📊 Dashboard Financeiro", "📥 Realizar Lançamento (Cartão Crédito)", 'Lançamento Receita'])
+pagina = st.sidebar.selectbox("Selecione a página:", ["Dashboard Financeiro", "Lançamento Cartão Crédito", 'Lançamento Débito','Lançamento Receita',])
 mes_atual = datetime.now().month
 ano_atual = datetime.now().year
 
@@ -36,8 +36,8 @@ with st.sidebar.expander("Filtros Avançados", expanded=False):
 
 
 # --- PÁGINA 1: DASHBOARD ---
-if pagina == "📊 Dashboard Financeiro":
-    st.title("📊 Controle Financeiro")
+if pagina == "Dashboard Financeiro":
+    st.title("Controle Financeiro")
 
     df_filtrado = df.copy()
 
@@ -95,17 +95,6 @@ if pagina == "📊 Dashboard Financeiro":
             lucro_realizado = total_receitas_recebidas + total_despesas_pagas
             lucro_previsto = total_receitas_previstas + total_despesas_previstas
             st.metric("📈 Lucro", f"R$ {lucro_realizado:,.2f}", f"de R$ {lucro_previsto:,.2f}")
-            # calcular progresso do lucro apenas quando o lucro previsto for positivo
-            if lucro_previsto and lucro_previsto != 0:
-                if lucro_previsto > 0:
-                    progresso_lucro = lucro_realizado / lucro_previsto
-                    progresso_lucro = max(0, min(1, progresso_lucro))
-                else:
-                    progresso_lucro = 0
-            else:
-                progresso_lucro = 0
-            st.progress(progresso_lucro)
-            st.caption(f"{progresso_lucro*100:.0f}% preenchido")
         
         st.divider()
 
@@ -323,8 +312,8 @@ if pagina == "📊 Dashboard Financeiro":
 
 
 # --- PÁGINA 2: LANÇAMENTOS ---
-elif pagina == "📥 Realizar Lançamento (Cartão Crédito)":
-    st.title("📥 Realizar Lançamento (Cartão Crédito)")
+elif pagina == "Lançamento Cartão Crédito":
+    st.title("Lançamento Cartão Crédito")
     
     with st.form("form_registro", clear_on_submit=True):
         data = st.date_input("Data", value=datetime.now().date())
@@ -354,15 +343,59 @@ elif pagina == "📥 Realizar Lançamento (Cartão Crédito)":
                     }
                     supabase.table("cartao_credito").insert(novo_item).execute()
                     st.success("Lançamento realizado! Verifique o Dashboard.")
+                    st.rerun()
                 except Exception as e:
                     st.error(f"Erro: {e}")
             else:
                 st.error("Verifique se o campo 'Valor do Gasto' o valor é maior que 0.")
-        else:
-            st.error("Por favor, insira a senha correta na barra lateral para liberar o formulário.")
+        
+        df = df[df['origem'] == 'Cartão de Crédito'] & df['tipo'] == 'Despesas'
+        df = df.sort_values(by='lancado_em', ascending=False)
+        
+        st.subheader("Últimos lançamentos")
+        st.dataframe(df.head(10), use_container_width=True)
 
 
-# --- PÁGINA 3: LANÇAMENTOS RECEITAS---
+# --- PÁGINA 3: LANÇAMENTOS DÉBITO---
+elif pagina == "Lançamento Débito":
+    st.title("Lançamento Débito")
+    
+    with st.form("form_registro", clear_on_submit=True):
+        data = st.date_input("Data", value=datetime.now().date())
+        desc = st.text_input("Descrição")
+        val = st.number_input("Valor Pago", min_value=0.0)
+        nome = st.selectbox("Nome do Titular do pagamento", ['Paulo', 'Mariana', 'Dividido'])
+        confirmado = st.selectbox("Pago", [True, False])
+        sub = st.form_submit_button("Registrar no Banco")
+            
+        if sub:
+            if val > 0:
+                try:
+                    novo_item ={
+                    'data': str(data), 
+                    'descricao': desc, 
+                    'valor': val, 
+                    'nome': nome,
+                    'confirmado': confirmado,
+                    'lancado_em': datetime.now().isoformat()
+                    }
+                    supabase.table("despesas_fixas").insert(novo_item).execute()
+                    st.success("Lançamento de Receita realizado! Verifique o Dashboard.")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Erro: {e}")
+            else:
+                st.error("Verifique se o campo 'Valor' o valor é maior que 0.")
+
+        
+        df = df[df['origem'] == 'Conta Corrente/PIX'] & df['tipo'] == 'Despesas'
+        df = df.sort_values(by='lancado_em', ascending=False)
+        
+        st.subheader("Últimos lançamentos")
+        st.dataframe(df.head(10), use_container_width=True)
+
+
+# --- PÁGINA 4: LANÇAMENTOS RECEITAS---
 elif pagina == "Lançamento Receita":
     st.title("Lançamento Receita")
     
@@ -370,7 +403,7 @@ elif pagina == "Lançamento Receita":
         data = st.date_input("Data", value=datetime.now().date())
         desc = st.text_input("Descrição")
         val = st.number_input("Valor Recebido", min_value=0.0)
-        nome = st.text_input("Nome")
+        nome = st.selectbox("Titular da Receita", ['Paulo', 'Mariana'])
         confirmado = st.selectbox("Recebido", [True, False])
         sub = st.form_submit_button("Registrar no Banco")
             
@@ -387,7 +420,14 @@ elif pagina == "Lançamento Receita":
                     }
                     supabase.table("receitas").insert(novo_item).execute()
                     st.success("Lançamento de Receita realizado! Verifique o Dashboard.")
+                    st.rerun()
                 except Exception as e:
                     st.error(f"Erro: {e}")
             else:
                 st.error("Verifique se o campo 'Valor Recebido' o valor é maior que 0.")
+        
+        df = df[df['tipo'] == 'Receitas']
+        df = df.sort_values(by='lancado_em', ascending=False)
+        
+        st.subheader("Últimos lançamentos")
+        st.dataframe(df.head(10), use_container_width=True)
