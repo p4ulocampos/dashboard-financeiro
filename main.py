@@ -33,6 +33,8 @@ with st.sidebar.expander("Filtros Avançados", expanded=False):
     categoria_selecionada = st.multiselect('Categoria', df['categoria'].unique(), placeholder="Todas")
     origem_selecionada = st.multiselect('origem', df['origem'].unique(), placeholder="Todas")
     valor_selecionado = st.slider('Valor', -6000, 10000, (-6000, 10000))
+    titular_cartao = st.multiselect('Titular do Cartão', df['titular_cartao'].unique(), placeholder="Todas")
+    titular_compra = st.multiselect('Titular do Compra', df['nome'].unique(), placeholder="Todas")
 
 
 # --- PÁGINA 1: DASHBOARD ---
@@ -55,6 +57,10 @@ if pagina == "Dashboard Financeiro":
         df_filtrado = df_filtrado[df_filtrado['origem'].isin(origem_selecionada)]
     if tipo_selecionado:
         df_filtrado = df_filtrado[df_filtrado['tipo'].isin(tipo_selecionado)]
+    if titular_cartao:
+        df_filtrado = df_filtrado[df_filtrado['titular_cartao'].isin(titular_cartao)]
+    if titular_compra:
+        df_filtrado = df_filtrado[df_filtrado['nome'].isin(titular_compra)]
 
 
     if not df_filtrado.empty:
@@ -310,6 +316,9 @@ if pagina == "Dashboard Financeiro":
         fig.update_layout(showlegend=False, xaxis_title="Categoria", yaxis_title="Valor Total", title="Gastos por Categoria")
         st.plotly_chart(fig, use_container_width=True)
 
+        st.divider()
+        st.dataframe(despesas.sort_values(by='data', ascending=False), use_container_width=True)
+
 
 # --- PÁGINA 2: LANÇAMENTOS ---
 elif pagina == "Lançamento Cartão Crédito":
@@ -390,6 +399,7 @@ elif pagina == "Lançamento Débito":
 
         
         df = df[(df['origem'] == 'Conta Corrente/PIX') & (df['tipo'] == 'Despesas')]
+        df = df[df['lancado_em'].notna()]
         df = df.sort_values(by='lancado_em', ascending=False)
         
         st.subheader("Últimos lançamentos")
@@ -428,6 +438,7 @@ elif pagina == "Lançamento Receita":
                 st.error("Verifique se o campo 'Valor Recebido' o valor é maior que 0.")
         
         df = df[df['tipo'] == 'Receitas']
+        df = df[df['lancado_em'].notna()]
         df = df.sort_values(by='lancado_em', ascending=False)
         
         if df.empty:
