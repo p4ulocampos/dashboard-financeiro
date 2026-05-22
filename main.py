@@ -399,6 +399,7 @@ elif pagina == "Lançamento Débito":
 
         
         df = df[(df['origem'] == 'Conta Corrente/PIX') & (df['tipo'] == 'Despesas')]
+        df = df[df['lancado_em'].notna()]
         df = df.sort_values(by='lancado_em', ascending=False)
         
         st.subheader("Últimos lançamentos")
@@ -437,6 +438,7 @@ elif pagina == "Lançamento Receita":
                 st.error("Verifique se o campo 'Valor Recebido' o valor é maior que 0.")
         
         df = df[df['tipo'] == 'Receitas']
+        df = df[df['lancado_em'].notna()]
         df = df.sort_values(by='lancado_em', ascending=False)
         
         if df.empty:
