@@ -2,14 +2,6 @@ import pandas as pd
 from supabase import create_client
 import streamlit as st
 import numpy as np
-import ssl
-import os
-
-# Temporarily disable SSL verification when DISABLE_SSL_VERIFY is set
-if os.environ.get("DISABLE_SSL_VERIFY", "0").lower() in ("1", "true", "yes"):
-    ssl._create_default_https_context = ssl._create_unverified_context
-
-#testando branch
 
 # Inicialize o cliente aqui
 url = st.secrets["SUPABASE_URL"]

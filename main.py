@@ -20,7 +20,7 @@ if st.button("🔄 Atualizar Dados"):
 
 # --- MENU LATERAL ---
 st.sidebar.title("📌 Navegação")
-pagina = st.sidebar.selectbox("Selecione a página:", ["Dashboard Financeiro", "Lançamento Cartão Crédito", 'Lançamento Débito','Lançamento Receita',])
+pagina = st.sidebar.selectbox("Selecione a página:", ["Dashboard Financeiro", "Lançamento Cartão Crédito", 'Lançamento Débito','Lançamento Receita', 'Extrato Cartão Crédito'])
 mes_atual = datetime.now().month
 ano_atual = datetime.now().year
 
@@ -37,7 +37,7 @@ with st.sidebar.expander("Filtros Avançados", expanded=False):
     titular_compra = st.multiselect('Titular do Compra', df['nome'].unique(), placeholder="Todas")
 
 
-# --- PÁGINA 1: DASHBOARD ---
+# --- PÁGINA 1: DASHBOARD --
 if pagina == "Dashboard Financeiro":
     st.title("Controle Financeiro")
 
@@ -446,3 +446,42 @@ elif pagina == "Lançamento Receita":
         else:
             st.subheader("Últimos lançamentos")
             st.dataframe(df.head(10), use_container_width=True)
+
+
+# --- PÁGINA 5: EXTRATO CARTÃO CRÉDITO---
+elif pagina == 'Extrato Cartão Crédito':
+    st.title('Extrato Cartão Crédito')
+
+    dffiltrado = df[df['origem'] == 'Cartão de Crédito']
+
+    col_banco, col_titular, col_mes, col_ano = st.columns(4)
+
+    with col_banco:
+        filtro_banco = st.selectbox("Selecione o Banco", df['banco_do_cartao'].unique())
+
+    with col_titular:
+        filtro_titular = st.selectbox("Selecione o Titular", df['titular_cartao'].unique())
+
+    with col_mes:
+        filtro_mes = st.selectbox("Selecione a Mes", df['mes_vencimento'].sort_values(ascending=True).unique())
+
+    with col_ano:
+        filtro_ano = st.selectbox("Selecione a Ano", df['ano_vencimento'].unique())
+    
+    st.divider()
+
+    dffiltrado = dffiltrado[
+        (dffiltrado['mes_vencimento'] == filtro_mes) &
+        (dffiltrado['ano_vencimento'] == filtro_ano) &
+        (dffiltrado['banco_do_cartao'] == filtro_banco) &
+        (dffiltrado['titular_cartao'] == filtro_titular)
+    ]
+    dffiltrado = dffiltrado.sort_values(by='data', ascending=False)
+    colunas = ['data', 'descricao', 'categoria', 'valor', 'nome', 'dia_vencimento', 'confirmado', 'lancado_em', 'banco_do_cartao', 'titular_cartao']
+    dffiltrado = dffiltrado[colunas]
+
+    valor = dffiltrado['valor'].sum()
+    st.metric("Total", f"R$ {valor:.2f}")
+    st.divider()
+    st.subheader("Últimos lançamentos")
+    st.dataframe(dffiltrado, use_container_width=True)
